@@ -33,3 +33,4 @@ services:
       - path: /*
         name: Access-Control-Allow-Origin
         value: "*"
+In this project When i upload a data file it directly goes to cleaning part
