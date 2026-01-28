@@ -1,0 +1,49 @@
+# Pixll - Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Environment variables (contains API keys!)
+.env
+*.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Uploads directory (user data)
+backend/uploads/
+
+# Node modules (if using npm frontend)
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Cache
+.cache/
+*.pyc
+
+# Test coverage
+.coverage
+htmlcov/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/

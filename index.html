@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixll | AI-Powered Data Analysis</title>
+    <meta name="description"
+        content="Upload data, auto-clean with AI, and generate visualizations using natural language.">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-400: #818cf8;
+            --primary-500: #6366f1;
+            --primary-600: #4f46e5;
+            --dark-400: #94a3b8;
+            --dark-500: #64748b;
+            --dark-600: #475569;
+            --dark-700: #334155;
+            --dark-800: #1e293b;
+            --dark-900: #0f172a;
+            --dark-950: #020617;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: linear-gradient(135deg, #020617 0%, #0f172a 50%, #1e1b4b 100%);
+            min-height: 100vh;
+            color: #f1f5f9;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.5);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.7);
+        }
+
+        /* Glass Card */
+        .glass-card {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .glass-card-hover {
+            transition: all 0.3s;
+        }
+
+        .glass-card-hover:hover {
+            background: rgba(15, 23, 42, 0.6);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            padding: 12px 24px;
+            background: linear-gradient(to right, var(--primary-600), var(--primary-500));
+            color: white;
+            font-weight: 600;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(to right, var(--primary-500), var(--primary-400));
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            padding: 12px 24px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            font-weight: 500;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(51, 65, 85, 0.5);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        /* Input */
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .input-field:focus {
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .input-field::placeholder {
+            color: var(--dark-500);
+        }
+
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary-500), #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+        }
+
+        .logo-text h1 {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary-400), #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-text p {
+            font-size: 12px;
+            color: var(--dark-400);
+        }
+
+        /* Navigation */
+        .nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: var(--dark-400);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(30, 41, 59, 0.5);
+            color: white;
+        }
+
+        .nav-btn.active {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--primary-400);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Main */
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        /* Upload Zone */
+        .upload-hero {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .upload-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: var(--primary-400);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .upload-hero h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(to right, var(--primary-400), #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .upload-hero p {
+            font-size: 20px;
+            color: var(--dark-400);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Drop Zone */
+        .drop-zone {
+            padding: 64px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+        }
+
+        .drop-zone:hover,
+        .drop-zone.drag-over {
+            border-color: var(--primary-500);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .drop-zone.drag-over {
+            transform: scale(1.02);
+        }
+
+        .drop-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            border-radius: 16px;
+            background: rgba(30, 41, 59, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark-400);
+            transition: all 0.3s;
+        }
+
+        .drop-zone:hover .drop-icon {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-400);
+        }
+
+        .drop-zone h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .drop-zone p {
+            color: var(--dark-400);
+            margin-bottom: 24px;
+        }
+
+        .file-types {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .file-type {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            color: var(--dark-300);
+            font-size: 14px;
+        }
+
+        /* Features Grid */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-top: 48px;
+        }
+
+        .feature {
+            padding: 24px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .feature h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .feature p {
+            font-size: 14px;
+            color: var(--dark-400);
+        }
+
+        /* Data Section */
+        .data-section {
+            display: none;
+        }
+
+        .data-section.active {
+            display: block;
+        }
+
+        /* Cleaning Panel */
+        .cleaning-panel {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .cleaning-info {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .cleaning-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-400);
+        }
+
+        .cleaning-icon.success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .cleaning-text h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .cleaning-text p {
+            font-size: 14px;
+            color: var(--dark-400);
+        }
+
+        /* Data Grid */
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+        }
+
+        /* Data Card */
+        .data-card {
+            overflow: hidden;
+        }
+
+        .data-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .data-card-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .data-card-title-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(30, 41, 59, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark-400);
+        }
+
+        .data-card-title-icon.success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .data-card-title h3 {
+            font-weight: 600;
+        }
+
+        .data-card-title p {
+            font-size: 12px;
+            color: var(--dark-400);
+        }
+
+        .data-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            padding: 16px;
+            background: rgba(30, 41, 59, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .data-stat {
+            text-align: center;
+        }
+
+        .data-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .data-stat-label {
+            font-size: 12px;
+            color: var(--dark-400);
+        }
+
+        /* Table */
+        .table-container {
+            max-height: 300px;
+            overflow: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--dark-400);
+            background: rgba(30, 41, 59, 0.5);
+            position: sticky;
+            top: 0;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--dark-200);
+        }
+
+        tr:hover td {
+            background: rgba(30, 41, 59, 0.3);
+        }
+
+        .null-value {
+            color: var(--dark-500);
+            font-style: italic;
+        }
+
+        /* Visualize Section */
+        .visualize-section {
+            display: none;
+        }
+
+        .visualize-section.active {
+            display: block;
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .chat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-400);
+        }
+
+        .chat-text h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .chat-text p {
+            font-size: 14px;
+            color: var(--dark-400);
+        }
+
+        .query-form {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .query-form input {
+            padding-right: 56px;
+        }
+
+        .query-submit {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: var(--primary-500);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .query-submit:hover {
+            background: var(--primary-400);
+        }
+
+        .query-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .example-queries {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .example-query {
+            padding: 8px 12px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            color: var(--dark-400);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .example-query:hover {
+            color: white;
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        /* Chart Area */
+        .chart-container {
+            margin-top: 24px;
+        }
+
+        .chart-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .chart-types {
+            display: flex;
+            gap: 4px;
+        }
+
+        .chart-type-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--dark-400);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .chart-type-btn:hover {
+            background: rgba(30, 41, 59, 0.5);
+            color: white;
+        }
+
+        .chart-type-btn.active {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--primary-400);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .export-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chart-area {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 400px;
+        }
+
+        .chart-explanation {
+            margin-top: 16px;
+            padding: 16px;
+            background: rgba(30, 41, 59, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .chart-explanation p {
+            font-size: 14px;
+            color: var(--dark-300);
+        }
+
+        .suggestions {
+            margin-top: 16px;
+        }
+
+        .suggestions-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--dark-400);
+            margin-bottom: 8px;
+        }
+
+        .suggestion-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .suggestion-btn {
+            padding: 8px 12px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 8px;
+            color: var(--primary-400);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .suggestion-btn:hover {
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: auto;
+            padding: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+        }
+
+        footer p {
+            font-size: 14px;
+            color: var(--dark-500);
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Error */
+        .error-msg {
+            padding: 16px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            color: #f87171;
+            margin-bottom: 24px;
+        }
+
+        /* Hidden */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .upload-hero h1 {
+                font-size: 32px;
+            }
+
+            .drop-zone {
+                padding: 32px;
+            }
+
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-btn span {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i data-lucide="sparkles" style="width: 24px; height: 24px; color: white;"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>Pixll</h1>
+                    <p>AI Data Analysis</p>
+                </div>
+            </div>
+            <nav class="nav">
+                <button class="nav-btn active" data-tab="upload" onclick="switchTab('upload')">
+                    <i data-lucide="upload" style="width: 18px; height: 18px;"></i>
+                    <span>Upload</span>
+                </button>
+                <button class="nav-btn" data-tab="data" onclick="switchTab('data')" disabled>
+                    <i data-lucide="database" style="width: 18px; height: 18px;"></i>
+                    <span>Data</span>
+                </button>
+                <button class="nav-btn" data-tab="visualize" onclick="switchTab('visualize')" disabled>
+                    <i data-lucide="bar-chart-3" style="width: 18px; height: 18px;"></i>
+                    <span>Visualize</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Error Display -->
+        <div id="error-display" class="error-msg hidden"></div>
+
+        <!-- Upload Section -->
+        <section id="upload-section">
+            <div class="upload-hero">
+                <div class="upload-badge">
+                    <i data-lucide="sparkles" style="width: 16px; height: 16px;"></i>
+                    <span>AI-Powered Data Analysis</span>
+                </div>
+                <h1>Upload your data</h1>
+                <p>Drop your CSV, Excel, or JSON file and let AI clean, analyze, and visualize your data instantly.</p>
+            </div>
+
+            <div class="glass-card drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+                <input type="file" id="file-input" accept=".csv,.xlsx,.xls,.json" style="display: none;">
+                <div class="drop-icon">
+                    <i data-lucide="upload" style="width: 40px; height: 40px;"></i>
+                </div>
+                <h3 id="drop-text">Drag & drop your file here</h3>
+                <p>or click to browse</p>
+                <div class="file-types">
+                    <div class="file-type">
+                        <i data-lucide="file-text" style="width: 20px; height: 20px;"></i>
+                        CSV
+                    </div>
+                    <div class="file-type">
+                        <i data-lucide="file-spreadsheet" style="width: 20px; height: 20px;"></i>
+                        Excel
+                    </div>
+                    <div class="file-type">
+                        <i data-lucide="file-json" style="width: 20px; height: 20px;"></i>
+                        JSON
+                    </div>
+                </div>
+                <p style="font-size: 12px; color: var(--dark-500); margin-top: 24px;">Maximum file size: 10MB</p>
+            </div>
+
+            <div class="features">
+                <div class="glass-card glass-card-hover feature">
+                    <div class="feature-icon">🧹</div>
+                    <h3>AI Auto-Clean</h3>
+                    <p>Intelligent data cleaning that handles missing values, fixes types, and standardizes formats.</p>
+                </div>
+                <div class="glass-card glass-card-hover feature">
+                    <div class="feature-icon">💬</div>
+                    <h3>Chat with Data</h3>
+                    <p>Ask questions in plain English and get instant visualizations.</p>
+                </div>
+                <div class="glass-card glass-card-hover feature">
+                    <div class="feature-icon">📊</div>
+                    <h3>Export Anywhere</h3>
+                    <p>Download cleaned data and charts as CSV, Excel, PDF, or PNG.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Section -->
+        <section id="data-section" class="data-section">
+            <!-- Cleaning Panel -->
+            <div class="glass-card cleaning-panel" id="cleaning-panel">
+                <div class="cleaning-info">
+                    <div class="cleaning-icon" id="cleaning-icon">
+                        <i data-lucide="sparkles" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <div class="cleaning-text">
+                        <h3 id="cleaning-title">AI Auto-Clean Agent</h3>
+                        <p id="cleaning-desc">One-click intelligent data cleaning powered by AI.</p>
+                    </div>
+                </div>
+                <button class="btn-primary" id="clean-btn" onclick="cleanData()">
+                    <i data-lucide="sparkles" style="width: 20px; height: 20px; margin-right: 8px;"></i>
+                    Auto-Clean Data
+                </button>
+            </div>
+
+            <!-- Data Grid -->
+            <div class="data-grid">
+                <!-- Original Data -->
+                <div class="glass-card data-card" id="original-card">
+                    <div class="data-card-header">
+                        <div class="data-card-title">
+                            <div class="data-card-title-icon">
+                                <i data-lucide="file-spreadsheet" style="width: 20px; height: 20px;"></i>
+                            </div>
+                            <div>
+                                <h3>Original Data</h3>
+                                <p id="original-filename">-</p>
+                            </div>
+                        </div>
+                        <button class="btn-secondary btn-sm" onclick="exportData('csv', false)">
+                            <i data-lucide="download" style="width: 16px; height: 16px; margin-right: 4px;"></i>
+                            Export
+                        </button>
+                    </div>
+                    <div class="data-stats" id="original-stats">
+                        <div class="data-stat">
+                            <div class="data-stat-value" id="original-rows">-</div>
+                            <div class="data-stat-label">Rows</div>
+                        </div>
+                        <div class="data-stat">
+                            <div class="data-stat-value" id="original-cols">-</div>
+                            <div class="data-stat-label">Columns</div>
+                        </div>
+                        <div class="data-stat">
+                            <div class="data-stat-value" id="original-size">-</div>
+                            <div class="data-stat-label">MB</div>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="original-table">
+                            <thead></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Cleaned Data -->
+                <div class="glass-card data-card hidden" id="cleaned-card">
+                    <div class="data-card-header">
+                        <div class="data-card-title">
+                            <div class="data-card-title-icon success">
+                                <i data-lucide="check-circle-2" style="width: 20px; height: 20px;"></i>
+                            </div>
+                            <div>
+                                <h3>Cleaned Data</h3>
+                                <p>AI-processed</p>
+                            </div>
+                        </div>
+                        <button class="btn-secondary btn-sm" onclick="exportData('csv', true)">
+                            <i data-lucide="download" style="width: 16px; height: 16px; margin-right: 4px;"></i>
+                            Export
+                        </button>
+                    </div>
+                    <div class="data-stats" id="cleaned-stats">
+                        <div class="data-stat">
+                            <div class="data-stat-value" id="cleaned-rows">-</div>
+                            <div class="data-stat-label">Rows</div>
+                        </div>
+                        <div class="data-stat">
+                            <div class="data-stat-value" id="cleaned-cols">-</div>
+                            <div class="data-stat-label">Columns</div>
+                        </div>
+                        <div class="data-stat">
+                            <div class="data-stat-value" id="cleaned-actions">-</div>
+                            <div class="data-stat-label">Actions</div>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="cleaned-table">
+                            <thead></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Visualize Section -->
+        <section id="visualize-section" class="visualize-section">
+            <div class="glass-card" style="padding: 24px;">
+                <div class="chat-header">
+                    <div class="chat-icon">
+                        <i data-lucide="sparkles" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <div class="chat-text">
+                        <h2>Chat with Your Data</h2>
+                        <p>Ask questions in plain English and get instant visualizations</p>
+                    </div>
+                </div>
+
+                <form class="query-form" onsubmit="submitQuery(event)">
+                    <input type="text" id="query-input" class="input-field"
+                        placeholder="e.g., Show me the top 5 products by revenue...">
+                    <button type="submit" class="query-submit" id="query-submit">
+                        <i data-lucide="send" style="width: 20px; height: 20px;"></i>
+                    </button>
+                </form>
+
+                <div class="example-queries" id="example-queries">
+                    <span class="example-query" onclick="setQuery('Show me the top 5 items by value')">Show top 5 by
+                        value</span>
+                    <span class="example-query" onclick="setQuery('Compare categories as a bar chart')">Compare
+                        categories</span>
+                    <span class="example-query" onclick="setQuery('Show the distribution of values')">Show
+                        distribution</span>
+                    <span class="example-query" onclick="setQuery('What is the trend over time?')">Show trend</span>
+                </div>
+            </div>
+
+            <div class="chart-container glass-card hidden" id="chart-container"
+                style="padding: 24px; margin-top: 24px;">
+                <div class="chart-controls">
+                    <div>
+                        <span style="font-size: 14px; color: var(--dark-400); margin-right: 8px;">Chart Type:</span>
+                        <div class="chart-types" id="chart-types">
+                            <button class="chart-type-btn active" data-type="bar" onclick="changeChartType('bar')">
+                                <i data-lucide="bar-chart-3" style="width: 16px; height: 16px;"></i> Bar
+                            </button>
+                            <button class="chart-type-btn" data-type="line" onclick="changeChartType('line')">
+                                <i data-lucide="line-chart" style="width: 16px; height: 16px;"></i> Line
+                            </button>
+                            <button class="chart-type-btn" data-type="pie" onclick="changeChartType('pie')">
+                                <i data-lucide="pie-chart" style="width: 16px; height: 16px;"></i> Pie
+                            </button>
+                            <button class="chart-type-btn" data-type="scatter" onclick="changeChartType('scatter')">
+                                <i data-lucide="scatter-chart" style="width: 16px; height: 16px;"></i> Scatter
+                            </button>
+                        </div>
+                    </div>
+                    <div class="export-btns">
+                        <button class="btn-secondary btn-sm" onclick="exportChart('png')">
+                            <i data-lucide="image" style="width: 16px; height: 16px; margin-right: 4px;"></i> PNG
+                        </button>
+                        <button class="btn-secondary btn-sm" onclick="exportChart('pdf')">
+                            <i data-lucide="file-text" style="width: 16px; height: 16px; margin-right: 4px;"></i> PDF
+                        </button>
+                    </div>
+                </div>
+                <div class="chart-area" id="chart-area"></div>
+                <div class="chart-explanation hidden" id="chart-explanation">
+                    <p id="explanation-text"></p>
+                </div>
+                <div class="suggestions hidden" id="suggestions">
+                    <div class="suggestions-label">
+                        <i data-lucide="lightbulb" style="width: 16px; height: 16px;"></i>
+                        <span>Try asking:</span>
+                    </div>
+                    <div class="suggestion-btns" id="suggestion-btns"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>Built with AI | Pixll - AI-Powered Data Analysis Platform</p>
+    </footer>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Global State
+        let sessionId = null;
+        let uploadData = null;
+        let cleanedData = null;
+        let currentChartType = 'bar';
+        let lastQuery = '';
+
+        const API_BASE = 'http://localhost:8000/api';
+
+        // Tab Navigation
+        function switchTab(tab) {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+
+            document.getElementById('upload-section').style.display = tab === 'upload' ? 'block' : 'none';
+            document.getElementById('data-section').classList.toggle('active', tab === 'data');
+            document.getElementById('visualize-section').classList.toggle('active', tab === 'visualize');
+        }
+
+        function enableTabs() {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.disabled = false);
+        }
+
+        // Error Handling
+        function showError(message) {
+            const el = document.getElementById('error-display');
+            el.textContent = message;
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 5000);
+        }
+
+        // File Upload
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file) uploadFile(file);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) uploadFile(file);
+        });
+
+        async function uploadFile(file) {
+            const dropText = document.getElementById('drop-text');
+            dropText.innerHTML = '<span class="loading"></span> Processing...';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch(`${API_BASE}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Upload failed');
+                }
+
+                const data = await response.json();
+                sessionId = data.session_id;
+                uploadData = data;
+
+                // Update UI
+                document.getElementById('original-filename').textContent = data.filename;
+                document.getElementById('original-rows').textContent = data.profile.row_count.toLocaleString();
+                document.getElementById('original-cols').textContent = data.profile.column_count;
+                document.getElementById('original-size').textContent = data.profile.memory_usage_mb.toFixed(2);
+
+                renderTable('original-table', data.preview);
+                enableTabs();
+                switchTab('data');
+                dropText.textContent = 'Drag & drop your file here';
+            } catch (error) {
+                showError(error.message);
+                dropText.textContent = 'Drag & drop your file here';
+            }
+        }
+
+        function renderTable(tableId, data) {
+            if (!data || data.length === 0) return;
+
+            const table = document.getElementById(tableId);
+            const thead = table.querySelector('thead');
+            const tbody = table.querySelector('tbody');
+
+            const columns = Object.keys(data[0]);
+
+            thead.innerHTML = '<tr>' + columns.map(col => `<th>${col}</th>`).join('') + '</tr>';
+            tbody.innerHTML = data.map(row =>
+                '<tr>' + columns.map(col => {
+                    const val = row[col];
+                    if (val === null || val === undefined) {
+                        return '<td><span class="null-value">null</span></td>';
+                    }
+                    return `<td>${String(val).substring(0, 50)}</td>`;
+                }).join('') + '</tr>'
+            ).join('');
+        }
+
+        // Data Cleaning
+        async function cleanData() {
+            const cleanBtn = document.getElementById('clean-btn');
+            cleanBtn.innerHTML = '<span class="loading"></span> Cleaning...';
+            cleanBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/clean/${sessionId}`, {
+                    method: 'POST'
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Cleaning failed');
+                }
+
+                const data = await response.json();
+                cleanedData = data;
+
+                // Update cleaning panel
+                document.getElementById('cleaning-icon').classList.add('success');
+                document.getElementById('cleaning-icon').innerHTML = '<i data-lucide="check-circle-2" style="width: 24px; height: 24px;"></i>';
+                document.getElementById('cleaning-title').textContent = 'Data Cleaned Successfully';
+                document.getElementById('cleaning-desc').textContent = `${data.report.total_actions} cleaning actions performed.`;
+
+                // Show cleaned card
+                document.getElementById('cleaned-card').classList.remove('hidden');
+                document.getElementById('cleaned-rows').textContent = data.report.rows_after.toLocaleString();
+                document.getElementById('cleaned-cols').textContent = data.report.columns_after;
+                document.getElementById('cleaned-actions').textContent = data.report.total_actions;
+
+                renderTable('cleaned-table', data.cleaned_preview);
+                lucide.createIcons();
+
+                cleanBtn.innerHTML = '<i data-lucide="sparkles" style="width: 20px; height: 20px; margin-right: 8px;"></i> Re-clean Data';
+                cleanBtn.disabled = false;
+                lucide.createIcons();
+            } catch (error) {
+                showError(error.message);
+                cleanBtn.innerHTML = '<i data-lucide="sparkles" style="width: 20px; height: 20px; margin-right: 8px;"></i> Auto-Clean Data';
+                cleanBtn.disabled = false;
+                lucide.createIcons();
+            }
+        }
+
+        // Visualization
+        function setQuery(query) {
+            document.getElementById('query-input').value = query;
+        }
+
+        async function submitQuery(e) {
+            e.preventDefault();
+            const input = document.getElementById('query-input');
+            const query = input.value.trim();
+            if (!query) return;
+
+            lastQuery = query;
+            const submitBtn = document.getElementById('query-submit');
+            submitBtn.innerHTML = '<span class="loading"></span>';
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/visualize`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        query: query,
+                        chart_type_override: null
+                    })
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Visualization failed');
+                }
+
+                const data = await response.json();
+                renderChart(data);
+                input.value = '';
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                submitBtn.innerHTML = '<i data-lucide="send" style="width: 20px; height: 20px;"></i>';
+                submitBtn.disabled = false;
+                lucide.createIcons();
+            }
+        }
+
+        function renderChart(data) {
+            document.getElementById('chart-container').classList.remove('hidden');
+
+            // Update active chart type
+            currentChartType = data.chart_type;
+            document.querySelectorAll('.chart-type-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.type === currentChartType);
+            });
+
+            // Render Plotly chart
+            const chartArea = document.getElementById('chart-area');
+            Plotly.newPlot(chartArea, data.plotly_figure.data, {
+                ...data.plotly_figure.layout,
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { family: 'Inter, sans-serif', color: '#e5e7eb' }
+            }, { responsive: true, displaylogo: false });
+
+            // Show explanation
+            if (data.explanation) {
+                document.getElementById('chart-explanation').classList.remove('hidden');
+                document.getElementById('explanation-text').textContent = data.explanation;
+            }
+
+            // Show suggestions
+            if (data.suggested_queries && data.suggested_queries.length > 0) {
+                document.getElementById('suggestions').classList.remove('hidden');
+                document.getElementById('suggestion-btns').innerHTML = data.suggested_queries.map(q =>
+                    `<button class="suggestion-btn" onclick="setQuery('${q}')">${q}</button>`
+                ).join('');
+            }
+        }
+
+        async function changeChartType(type) {
+            if (type === currentChartType || !lastQuery) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/visualize/override?session_id=${sessionId}&chart_type=${type}`, {
+                    method: 'POST'
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Failed to change chart type');
+                }
+
+                const data = await response.json();
+                renderChart(data);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function exportData(format, cleaned) {
+            try {
+                const response = await fetch(`${API_BASE}/export/${sessionId}/${format}?cleaned=${cleaned}`);
+                if (!response.ok) throw new Error('Export failed');
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `data_${cleaned ? 'cleaned' : 'original'}.${format}`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function exportChart(format) {
+            try {
+                const response = await fetch(`${API_BASE}/visualize/${sessionId}/export/${format}`);
+                if (!response.ok) throw new Error('Chart export failed');
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `pixll_chart.${format}`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+    </script>
+</body>
+
+</html>
