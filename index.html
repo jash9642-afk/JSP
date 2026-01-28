@@ -1084,7 +1084,14 @@
         let currentChartType = 'bar';
         let lastQuery = '';
 
-        const API_BASE = 'http://localhost:8000/api';
+        // API Configuration - Auto-detect environment
+        // For production: Set your Render backend URL here after deployment
+        const PRODUCTION_API = 'https://pixll-api.onrender.com/api';  // UPDATE THIS after deploying backend
+        const LOCAL_API = 'http://localhost:8000/api';
+
+        // Use production URL if not on localhost, otherwise use local
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const API_BASE = isLocal ? LOCAL_API : PRODUCTION_API;
 
         // Tab Navigation
         function switchTab(tab) {

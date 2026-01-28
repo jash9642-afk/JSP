@@ -1,0 +1,35 @@
+# Render.com Deployment Configuration
+# This file configures automatic deployments on Render
+
+services:
+  # Backend API Service
+  - type: web
+    name: pixll-api
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GOOGLE_API_KEY
+        sync: false  # You'll set this manually in Render dashboard
+      - key: GEMINI_MODEL
+        value: gemini-pro
+      - key: PYTHON_VERSION
+        value: 3.11.0
+    rootDir: backend
+    healthCheckPath: /api/health
+
+  # Frontend Static Site
+  - type: web
+    name: pixll-frontend
+    env: static
+    region: oregon
+    plan: free
+    buildCommand: echo "No build needed"
+    staticPublishPath: .
+    pullRequestPreviewsEnabled: true
+    headers:
+      - path: /*
+        name: Access-Control-Allow-Origin
+        value: "*"
