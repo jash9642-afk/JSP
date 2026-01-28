@@ -1485,15 +1485,50 @@
             userChoseCleaning = false;
 
             try {
-                // Don't clean, just enable tabs and go to visualize
+                // Enable tabs and go to visualize
                 enableTabs();
                 switchTab('visualize');
+
+                // Auto-generate an initial chart with a default query
+                await generateInitialChart();
             } catch (error) {
                 showError(error.message);
             } finally {
                 visualizeBtn.classList.remove('loading');
                 cleanBtn.disabled = false;
                 visualizeBtn.disabled = false;
+            }
+        }
+
+        async function generateInitialChart() {
+            if (!sessionId) return;
+
+            const defaultQuery = "Show an overview of the data";
+            document.getElementById('query-input').value = defaultQuery;
+
+            try {
+                const response = await fetch(`${API_BASE}/visualize`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        query: defaultQuery,
+                        chart_type_override: null
+                    })
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    console.log('Initial chart generation failed:', err.detail);
+                    return;
+                }
+
+                const data = await response.json();
+                lastQuery = defaultQuery;
+                renderChart(data);
+                document.getElementById('query-input').value = '';
+            } catch (error) {
+                console.log('Initial chart error:', error.message);
             }
         }
 
