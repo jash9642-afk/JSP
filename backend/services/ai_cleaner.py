@@ -79,6 +79,12 @@ class AIDataCleaner:
         rows_before = len(cleaned_df)
         cols_before = len(cleaned_df.columns)
         
+        # Step 0: Pre-processing - Handle list-like string columns
+        for col in cleaned_df.columns:
+            cleaned_df, action = self._clean_list_column(cleaned_df, col)
+            if action:
+                actions.append(action)
+        
         # Step 1: Profile the data and detect issues
         profile = self._profile_for_cleaning(cleaned_df)
         
@@ -120,6 +126,50 @@ class AIDataCleaner:
                 rows_affected=int(dupes)
             ))
         
+        # Step 5: Fill remaining null values with appropriate defaults
+        for col in cleaned_df.columns:
+            null_count = cleaned_df[col].isna().sum()
+            if null_count > 0:
+                if cleaned_df[col].dtype in ['int64', 'float64']:
+                    # For numeric, fill with 0 or median
+                    fill_val = cleaned_df[col].median() if cleaned_df[col].notna().any() else 0
+                    cleaned_df[col] = cleaned_df[col].fillna(fill_val)
+                    actions.append(CleaningAction(
+                        column=col,
+                        action="fill_remaining_nulls",
+                        details=f"Filled {null_count} remaining nulls with {fill_val:.2f}",
+                        rows_affected=int(null_count)
+                    ))
+                else:
+                    # For text/object, fill with "N/A" or mode
+                    mode_val = cleaned_df[col].mode().iloc[0] if len(cleaned_df[col].mode()) > 0 else "N/A"
+                    # Use "N/A" for truly mixed columns, mode for categorical
+                    unique_ratio = cleaned_df[col].nunique() / len(cleaned_df) if len(cleaned_df) > 0 else 1
+                    if unique_ratio > 0.7:  # High cardinality - use N/A
+                        fill_val = "N/A"
+                    else:
+                        fill_val = mode_val
+                    cleaned_df[col] = cleaned_df[col].fillna(fill_val)
+                    actions.append(CleaningAction(
+                        column=col,
+                        action="fill_remaining_nulls",
+                        details=f"Filled {null_count} remaining nulls with '{fill_val}'",
+                        rows_affected=int(null_count)
+                    ))
+        
+        # Step 6: Format datetime columns to readable format
+        for col in cleaned_df.select_dtypes(include=['datetime64']).columns:
+            try:
+                cleaned_df[col] = cleaned_df[col].dt.strftime('%Y-%m-%d')
+                actions.append(CleaningAction(
+                    column=col,
+                    action="format_dates",
+                    details=f"Formatted dates to YYYY-MM-DD",
+                    rows_affected=int((~cleaned_df[col].isna()).sum())
+                ))
+            except:
+                pass
+        
         # Generate recommendations
         recommendations = self._generate_recommendations(cleaned_df, profile)
         
@@ -135,6 +185,40 @@ class AIDataCleaner:
         )
         
         return cleaned_df, report
+    
+    def _clean_list_column(self, df: pd.DataFrame, col: str) -> Tuple[pd.DataFrame, Optional[CleaningAction]]:
+        """Clean columns that contain list-like string representations"""
+        sample = df[col].dropna().head(10).astype(str)
+        
+        # Check if values look like Python lists: ['item1', 'item2', ...]
+        list_pattern = r"^\[.*\]$"
+        if sample.str.match(list_pattern).mean() > 0.5:
+            try:
+                # Convert list strings to comma-separated readable format
+                def clean_list_str(val):
+                    if pd.isna(val):
+                        return val
+                    val_str = str(val)
+                    if val_str.startswith('[') and val_str.endswith(']'):
+                        # Remove brackets and clean up quotes
+                        inner = val_str[1:-1]
+                        # Parse items
+                        items = [item.strip().strip("'\"") for item in inner.split(',')]
+                        return ', '.join(items)
+                    return val_str
+                
+                df[col] = df[col].apply(clean_list_str)
+                
+                return df, CleaningAction(
+                    column=col,
+                    action="clean_list_format",
+                    details=f"Converted list format to readable comma-separated values",
+                    rows_affected=int((~df[col].isna()).sum())
+                )
+            except Exception as e:
+                print(f"Failed to clean list column {col}: {e}")
+        
+        return df, None
     
     def _profile_for_cleaning(self, df: pd.DataFrame) -> Dict[str, Dict]:
         """Generate detailed profile for cleaning decisions"""
