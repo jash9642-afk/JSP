@@ -776,6 +776,174 @@
             margin-bottom: 24px;
         }
 
+        /* Action Choice Section */
+        .action-choice-section {
+            display: none;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .action-choice-section.active {
+            display: block;
+        }
+
+        .action-choice-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .action-choice-header h2 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(to right, var(--primary-400), #a78bfa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .action-choice-header p {
+            color: var(--dark-400);
+            font-size: 16px;
+        }
+
+        .file-preview {
+            padding: 16px;
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .file-preview-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(34, 197, 94, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #22c55e;
+        }
+
+        .file-preview-info h4 {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .file-preview-info p {
+            font-size: 14px;
+            color: var(--dark-400);
+        }
+
+        .file-preview-stats {
+            margin-left: auto;
+            display: flex;
+            gap: 24px;
+        }
+
+        .file-preview-stat {
+            text-align: center;
+        }
+
+        .file-preview-stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-400);
+        }
+
+        .file-preview-stat-label {
+            font-size: 12px;
+            color: var(--dark-500);
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .action-btn {
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .action-btn:hover {
+            border-color: var(--primary-500);
+            transform: translateY(-4px);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .action-btn-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+
+        .action-btn-clean .action-btn-icon {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+            color: var(--primary-400);
+        }
+
+        .action-btn-visualize .action-btn-icon {
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.2), rgba(34, 197, 94, 0.2));
+            color: #14b8a6;
+        }
+
+        .action-btn h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .action-btn p {
+            font-size: 14px;
+            color: var(--dark-400);
+            line-height: 1.5;
+        }
+
+        .action-btn-loading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+            color: var(--primary-400);
+        }
+
+        .action-btn.loading .action-btn-loading {
+            display: flex;
+        }
+
+        @media (max-width: 640px) {
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .file-preview {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .file-preview-stats {
+                margin-left: 0;
+                margin-top: 16px;
+            }
+        }
+
         /* Hidden */
         .hidden {
             display: none !important;
@@ -888,6 +1056,64 @@
                     <h3>Export Anywhere</h3>
                     <p>Download cleaned data and charts as CSV, Excel, PDF, or PNG.</p>
                 </div>
+            </div>
+        </section>
+
+        <!-- Action Choice Section (shown after upload) -->
+        <section id="action-choice-section" class="action-choice-section">
+            <div class="action-choice-header">
+                <h2>Your Data is Ready!</h2>
+                <p>Choose what you'd like to do with your dataset</p>
+            </div>
+
+            <!-- File Preview -->
+            <div class="glass-card file-preview" id="file-preview">
+                <div class="file-preview-icon">
+                    <i data-lucide="file-check" style="width: 24px; height: 24px;"></i>
+                </div>
+                <div class="file-preview-info">
+                    <h4 id="preview-filename">data.csv</h4>
+                    <p id="preview-filesize">Uploaded successfully</p>
+                </div>
+                <div class="file-preview-stats">
+                    <div class="file-preview-stat">
+                        <div class="file-preview-stat-value" id="preview-rows">0</div>
+                        <div class="file-preview-stat-label">Rows</div>
+                    </div>
+                    <div class="file-preview-stat">
+                        <div class="file-preview-stat-value" id="preview-cols">0</div>
+                        <div class="file-preview-stat-label">Columns</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <!-- Clean Data Button -->
+                <button class="glass-card glass-card-hover action-btn action-btn-clean" id="action-clean-btn"
+                    onclick="handleCleanData()">
+                    <div class="action-btn-icon">🧹</div>
+                    <h3>Clean Data</h3>
+                    <p>Automatically clean, preprocess, and prepare your data using AI. Handles missing values, fixes
+                        types, and standardizes formats.</p>
+                    <div class="action-btn-loading">
+                        <span class="loading"></span>
+                        <span>Cleaning with AI...</span>
+                    </div>
+                </button>
+
+                <!-- Visualize Data Button -->
+                <button class="glass-card glass-card-hover action-btn action-btn-visualize" id="action-visualize-btn"
+                    onclick="handleVisualizeData()">
+                    <div class="action-btn-icon">📊</div>
+                    <h3>Visualize Data</h3>
+                    <p>Explore and visualize your data without modifying it. Ask questions in plain English and get
+                        instant charts.</p>
+                    <div class="action-btn-loading">
+                        <span class="loading"></span>
+                        <span>Loading visualizations...</span>
+                    </div>
+                </button>
             </div>
         </section>
 
@@ -1083,6 +1309,7 @@
         let cleanedData = null;
         let currentChartType = 'bar';
         let lastQuery = '';
+        let userChoseCleaning = false;  // Track if user chose to clean data
 
         // API Configuration - Auto-detect environment
         // For production: Set your Render backend URL here after deployment
@@ -1098,9 +1325,22 @@
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
 
-            document.getElementById('upload-section').style.display = tab === 'upload' ? 'block' : 'none';
-            document.getElementById('data-section').classList.toggle('active', tab === 'data');
-            document.getElementById('visualize-section').classList.toggle('active', tab === 'visualize');
+            // Hide all sections
+            document.getElementById('upload-section').style.display = 'none';
+            document.getElementById('action-choice-section').classList.remove('active');
+            document.getElementById('data-section').classList.remove('active');
+            document.getElementById('visualize-section').classList.remove('active');
+
+            // Show selected section
+            if (tab === 'upload') {
+                document.getElementById('upload-section').style.display = 'block';
+            } else if (tab === 'action-choice') {
+                document.getElementById('action-choice-section').classList.add('active');
+            } else if (tab === 'data') {
+                document.getElementById('data-section').classList.add('active');
+            } else if (tab === 'visualize') {
+                document.getElementById('visualize-section').classList.add('active');
+            }
         }
 
         function enableTabs() {
@@ -1162,19 +1402,98 @@
                 sessionId = data.session_id;
                 uploadData = data;
 
-                // Update UI
+                // Update file preview in action choice section
+                document.getElementById('preview-filename').textContent = data.filename;
+                document.getElementById('preview-filesize').textContent = `${data.profile.memory_usage_mb.toFixed(2)} MB`;
+                document.getElementById('preview-rows').textContent = data.profile.row_count.toLocaleString();
+                document.getElementById('preview-cols').textContent = data.profile.column_count;
+
+                // Also update the original data card for later
                 document.getElementById('original-filename').textContent = data.filename;
                 document.getElementById('original-rows').textContent = data.profile.row_count.toLocaleString();
                 document.getElementById('original-cols').textContent = data.profile.column_count;
                 document.getElementById('original-size').textContent = data.profile.memory_usage_mb.toFixed(2);
-
                 renderTable('original-table', data.preview);
-                enableTabs();
-                switchTab('data');
+
+                // Show action choice section instead of auto-navigating
+                switchTab('action-choice');
+                lucide.createIcons();  // Re-initialize icons for new elements
                 dropText.textContent = 'Drag & drop your file here';
             } catch (error) {
                 showError(error.message);
                 dropText.textContent = 'Drag & drop your file here';
+            }
+        }
+
+        // Action Choice Handlers
+        async function handleCleanData() {
+            const cleanBtn = document.getElementById('action-clean-btn');
+            const visualizeBtn = document.getElementById('action-visualize-btn');
+
+            cleanBtn.classList.add('loading');
+            cleanBtn.disabled = true;
+            visualizeBtn.disabled = true;
+            userChoseCleaning = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/clean/${sessionId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Cleaning failed');
+                }
+
+                const data = await response.json();
+                cleanedData = data;
+
+                // Update cleaned data card
+                document.getElementById('cleaned-rows').textContent = data.profile.row_count.toLocaleString();
+                document.getElementById('cleaned-cols').textContent = data.profile.column_count;
+                document.getElementById('cleaned-size').textContent = data.profile.memory_usage_mb.toFixed(2);
+                renderTable('cleaned-table', data.preview);
+
+                // Update cleaning panel to show success
+                document.getElementById('cleaning-icon').classList.add('success');
+                document.getElementById('cleaning-title').textContent = 'Cleaning Complete!';
+                document.getElementById('cleaning-desc').textContent = `${data.report.actions_taken.length} improvements made`;
+                document.getElementById('clean-btn').style.display = 'none';
+
+                // Show cleaned card
+                document.getElementById('cleaned-card').classList.remove('hidden');
+
+                enableTabs();
+                switchTab('data');
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                cleanBtn.classList.remove('loading');
+                cleanBtn.disabled = false;
+                visualizeBtn.disabled = false;
+            }
+        }
+
+        async function handleVisualizeData() {
+            const cleanBtn = document.getElementById('action-clean-btn');
+            const visualizeBtn = document.getElementById('action-visualize-btn');
+
+            visualizeBtn.classList.add('loading');
+            cleanBtn.disabled = true;
+            visualizeBtn.disabled = true;
+            userChoseCleaning = false;
+
+            try {
+                // Don't clean, just enable tabs and go to visualize
+                enableTabs();
+                switchTab('visualize');
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                visualizeBtn.classList.remove('loading');
+                cleanBtn.disabled = false;
+                visualizeBtn.disabled = false;
             }
         }
 
